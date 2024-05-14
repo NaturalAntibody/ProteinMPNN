@@ -22,23 +22,19 @@ TiedFeaturizeResult = namedtuple("TiedFeaturizeResult", [
 
 
 def _score(model, featurize_result: TiedFeaturizeResult, sample_count: int = 1):
-    native_score_list = []
-    global_native_score_list = []
-    for _ in range(sample_count):
-        randn_1 = torch.randn(featurize_result.chain_M.shape, device=featurize_result.X.device)
-        log_probs = model(featurize_result.X, featurize_result.S, featurize_result.mask,
-                          featurize_result.chain_M * featurize_result.chain_M_pos, featurize_result.residue_idx,
-                          featurize_result.chain_encoding_all, randn_1)
-        mask_for_loss = featurize_result.mask * featurize_result.chain_M * featurize_result.chain_M_pos
-        scores = _scores(featurize_result.S, log_probs, mask_for_loss)
-        native_scores = scores.cpu().data.numpy()
-        native_score_list.append(native_scores)
-        global_scores = _scores(featurize_result.S, log_probs, featurize_result.mask)
-        global_native_scores = global_scores.cpu().data.numpy()
-        global_native_score_list.append(global_native_scores)
-    native_scores = np.concatenate(native_score_list, 0)
-    global_native_scores = np.concatenate(global_native_score_list, 0)
-    return native_scores, global_native_scores
+    noise = torch.randn((sample_count, featurize_result.chain_M.shape[1]), device=featurize_result.X.device)
+    X = featurize_result.X.expand(sample_count, -1, -1, -1)
+    S = featurize_result.S.expand(sample_count, -1)
+    mask = featurize_result.mask.expand(sample_count, -1)
+    chain_M = (featurize_result.chain_M * featurize_result.chain_M_pos).expand(sample_count, -1)
+    residue_idx = featurize_result.residue_idx.expand(sample_count, -1)
+    chain_encoding_all = featurize_result.chain_encoding_all.expand(sample_count, -1)
+
+    log_probs = model(X, S, mask, chain_M, residue_idx, chain_encoding_all, noise)
+    mask_for_loss = mask * chain_M
+    scores = _scores(S, log_probs, mask_for_loss)
+    global_scores = _scores(S, log_probs, mask)
+    return scores, global_scores
 
 
 def _score_sequence(id, seq, model, featurize_result, device, num_seq_per_target):
