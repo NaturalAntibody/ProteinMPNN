@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-torch = "^2.3.0"
+torch = "^2.2.0"
 numpy = "^1.26.4"
 biopython = "^1.83"
 psutil = "^5.9.8"
