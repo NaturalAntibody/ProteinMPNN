@@ -1,7 +1,10 @@
+import json
 from Bio.PDB import PDBParser
 from Bio.SeqUtils import IUPACData
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, TextIO
+
+import torch
 
 
 def parse_pdb_to_dict(pdb_path: Path, chain_ids: Optional[list[str]] = None) -> dict[str, Any]:
@@ -11,7 +14,7 @@ def parse_pdb_to_dict(pdb_path: Path, chain_ids: Optional[list[str]] = None) -> 
     chain_coords = {}
 
     for chain in structure.get_chains():
-        if chain.id not in chain_ids:
+        if chain_ids and chain.id not in chain_ids:
             continue
         coords_N = []
         coords_O = []
@@ -48,3 +51,21 @@ def parse_pdb_to_dict(pdb_path: Path, chain_ids: Optional[list[str]] = None) -> 
         "name": pdb_path.stem,
         "num_of_chains": len(chain_seqs),
     }
+
+
+def select_chains(protein: dict, chains: list[str]) -> dict:
+    res = {"name": protein["name"], "num_of_chains": len(chains), "seq": ""}
+    for chain in chains:
+        res[f"coords_chain_{chain}"] = protein[f"coords_chain_{chain}"]
+        res[f"seq_chain_{chain}"] = protein[f"seq_chain_{chain}"]
+        res["seq"] += protein[f"seq_chain_{chain}"]
+    return res
+
+
+def write_scores(id: str, designed_score: torch.tensor, global_score: torch.tensor, out_jsonl: TextIO):
+    out_json = {
+        "id": "pdb",
+        "scores": designed_score.tolist(),
+        "global_scores": global_score.tolist(),
+    }
+    out_jsonl.write(f"{json.dumps(out_json)}\n")
