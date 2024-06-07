@@ -96,12 +96,12 @@ def score_sequences(
 ):
     features = featurize_pdb(pdb_path, designed_chains, fixed_chains, device)
     
-    all_global_scores = np.empty((len(sequences), sample_count))
+    all_global_scores = torch.empty((len(sequences), sample_count), device=device)
     for i, sequence in enumerate(sequences):
         features = encode_sequence(features, sequence)
         _, global_scores = score(model, features, sample_count)
         all_global_scores[i] = global_scores
-    return all_global_scores
+    return all_global_scores.numpy(force=True)
 
 
 def run_scoring_modelled_structures(
