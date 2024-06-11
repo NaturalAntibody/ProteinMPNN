@@ -1,15 +1,16 @@
 import json
 from pathlib import Path
 from typing import TextIO
+
+import numpy as np
 import torch
 from tqdm import tqdm
 
-from proteinmpnn.featurize import ALPHABET, featurize_pdb, get_fixed_positions_dict, tied_featurize
+from proteinmpnn.config import RESULTS_DIR, DATA_DIR
+from proteinmpnn.featurize import ALPHABET, get_fixed_positions_dict, tied_featurize
 from proteinmpnn.io import parse_pdb_to_dict
+from proteinmpnn.models import load_abmpnn
 from proteinmpnn.protein_mpnn_utils import _S_to_seq, _scores
-import numpy as np
-from proteinmpnn.models import load_proteinmpnn
-from proteinmpnn.config import RESULTS_DIR
 
 
 def sample(
@@ -67,7 +68,6 @@ def sample(
     # Generate some sequences
     all_probs_list = []
     all_log_probs_list = []
-    S_sample_list = []
 
     omit_AAs = "X"
     omit_AAs_np = np.array([AA in omit_AAs for AA in ALPHABET]).astype(np.float32)
@@ -129,17 +129,18 @@ def sample(
 if __name__ == "__main__":
 
     results_dir = RESULTS_DIR / "if_sampling"
+    results_dir = "/tmp"
     results_dir.mkdir(parents=True, exist_ok=True)
-    for temperature in [0.1, 0.2, 0.4, 0.6, 0.8, 1.0]:
-        with open(results_dir / f"proteinmpnn_{temperature}.jsonl", "w") as out_jsonl:
+    for temperature, n_seq in [(0.1, 10000), (0.2, 10000), (0.4, 2000), (0.6, 1000), (0.8, 1000), (1.0, 1000)]:
+        with open(results_dir / f"abmpnn_{temperature}.jsonl", "w") as out_jsonl:
             sample(
-                load_proteinmpnn(),
-                Path("/home/bartosz/Documents/ProteinMPNN/data/1N8Z_imgt.pdb"),
+                load_abmpnn(),
+                DATA_DIR / "1N8Z_imgt.pdb",
                 ["B"],
                 [],
                 {"B": list(range(98, 108))},
                 temperature,
-                num_seq_per_target=1000,
+                num_seq_per_target=n_seq,
                 batch_size=1,
                 out_jsonl=out_jsonl,
             )

@@ -3,6 +3,7 @@ from pathlib import Path
 
 BASE_PATH = Path(__file__).parent.parent.resolve()
 RESULTS_DIR = BASE_PATH / "results"
+DATA_DIR = BASE_PATH / "data"
 
 PACKAGE_ROOT = Path(__file__).parent.resolve()
 MODELS_DIR = PACKAGE_ROOT / "model_weights"
