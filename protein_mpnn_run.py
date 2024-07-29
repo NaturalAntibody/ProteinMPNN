@@ -18,8 +18,7 @@ def main(args):
     import os.path
     import subprocess
     
-    from protein_mpnn_utils import loss_nll, loss_smoothed, gather_edges, gather_nodes, gather_nodes_t, cat_neighbors_nodes, _scores, _S_to_seq, tied_featurize, parse_PDB, parse_fasta
-    from protein_mpnn_utils import StructureDataset, StructureDatasetPDB, ProteinMPNN
+    from proteinmpnn.protein_mpnn_utils import loss_nll, loss_smoothed, gather_edges, gather_nodes, gather_nodes_t, cat_neighbors_nodes, _scores, _S_to_seq, tied_featurize, parse_PDB, parse_fasta, StructureDataset, StructureDatasetPDB, ProteinMPNN
 
     if args.seed:
         seed=args.seed
