@@ -53,7 +53,7 @@ def sample(
     mask_for_loss = features.mask * features.chain_M * features.chain_M_pos
     designed_scores = _scores(features.S, log_probs, mask_for_loss)  # score only the redesigned part
     global_scores = _scores(features.S, log_probs, features.mask)  # score the whole structure-sequence
-
+    results = []
     pdb_res = {
         "id": "pdb",
         # "log_probs": log_probs.tolist(),
@@ -61,6 +61,7 @@ def sample(
         "global_scores": global_scores.tolist(),
         "seq": protein["seq"],
     }
+    results.append(pdb_res)
     out_jsonl.write(f"{json.dumps(pdb_res)}\n")
 
     # Generate some sequences
@@ -118,7 +119,9 @@ def sample(
             "seq_recovery": seq_recovery_rate.tolist(),
             "seq": seq,
         }
+        results.append(sample_res)
         out_jsonl.write(f"{json.dumps(sample_res)}\n")
+        return results
 
 
 if __name__ == "__main__":
