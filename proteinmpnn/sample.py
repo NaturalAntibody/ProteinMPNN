@@ -19,7 +19,7 @@ def sample(
     designed_chains,
     fixed_chains,
     temperature: float,
-    num_seq_per_target,
+    num_seq_per_target: int,
     out_jsonl: TextIO,
     chain_designed_positions: Optional[dict] = None,
     device: torch.device = torch.device("cuda:0"),
@@ -121,7 +121,7 @@ def sample(
         }
         results.append(sample_res)
         out_jsonl.write(f"{json.dumps(sample_res)}\n")
-        return results
+    return results
 
 
 if __name__ == "__main__":
