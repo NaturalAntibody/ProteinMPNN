@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import TextIO
+from typing import Optional, TextIO
 
 import numpy as np
 import torch
@@ -18,21 +18,19 @@ def sample(
     pdb_path,
     designed_chains,
     fixed_chains,
-    chain_designed_positions: dict,
     temperature: float,
     num_seq_per_target,
-    batch_size,
     out_jsonl: TextIO,
+    chain_designed_positions: Optional[dict] = None,
     device: torch.device = torch.device("cuda:0"),
 ):
-
-    NUM_BATCHES = num_seq_per_target // batch_size
-    BATCH_SIZE = batch_size
-
     all_chains = designed_chains + fixed_chains
     protein = parse_pdb_to_dict(pdb_path, chain_ids=all_chains)
     chain_id_dict = {protein["name"]: (designed_chains, fixed_chains)}
-    fixed_positions_dict = get_fixed_positions_dict(protein, chain_designed_positions)
+
+    fixed_positions_dict = None
+    if chain_designed_positions is not None:
+        fixed_positions_dict = get_fixed_positions_dict(protein, chain_designed_positions)
 
     features = tied_featurize(
         [protein],
@@ -66,13 +64,10 @@ def sample(
     out_jsonl.write(f"{json.dumps(pdb_res)}\n")
 
     # Generate some sequences
-    all_probs_list = []
-    all_log_probs_list = []
-
     omit_AAs = "X"
     omit_AAs_np = np.array([AA in omit_AAs for AA in ALPHABET]).astype(np.float32)
     bias_AAs_np = np.zeros(len(ALPHABET))
-    for j in tqdm(range(NUM_BATCHES), total=NUM_BATCHES):
+    for j in tqdm(range(num_seq_per_target), total=num_seq_per_target):
         randn_2 = torch.randn(features.chain_M.shape, device=device)
         sample_dict = model.sample(
             features.X,
