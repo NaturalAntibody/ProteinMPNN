@@ -10,17 +10,16 @@ from proteinmpnn.config import RESULTS_DIR, DATA_DIR
 from proteinmpnn.featurize import ALPHABET, get_fixed_positions_dict, tied_featurize
 from proteinmpnn.io import parse_pdb_to_dict
 from proteinmpnn.models import load_abmpnn
-from proteinmpnn.protein_mpnn_utils import _S_to_seq, _scores
+from proteinmpnn.protein_mpnn_utils import _S_to_seq, ProteinMPNN, _scores
 
 
 def sample(
-    model,
-    pdb_path,
-    designed_chains,
-    fixed_chains,
+    model: ProteinMPNN,
+    pdb_path: Path,
+    designed_chains: list[str],
+    fixed_chains: list[str],
     temperature: float,
     num_seq_per_target: int,
-    out_jsonl: TextIO,
     chain_designed_positions: Optional[dict] = None,
     device: torch.device = torch.device("cuda:0"),
 ):
@@ -62,7 +61,6 @@ def sample(
         "seq": protein["seq"],
     }
     results.append(pdb_res)
-    out_jsonl.write(f"{json.dumps(pdb_res)}\n")
 
     # Generate some sequences
     omit_AAs = "X"
@@ -120,7 +118,6 @@ def sample(
             "seq": seq,
         }
         results.append(sample_res)
-        out_jsonl.write(f"{json.dumps(sample_res)}\n")
     return results
 
 
@@ -128,7 +125,19 @@ if __name__ == "__main__":
 
     results_dir = RESULTS_DIR / "if_sampling"
     results_dir = "/tmp"
-    results_dir.mkdir(parents=True, exist_ok=True)
+    # results_dir.mkdir(parents=True, exist_ok=True)
+    res = sample(
+            model=load_abmpnn(),
+            pdb_path=DATA_DIR / "1dqj.pdb",
+            designed_chains=["A", "B"],
+            fixed_chains=[],
+            temperature=0.1,
+            num_seq_per_target=1,
+            out_jsonl="/tmp/out.json",
+        )
+    print(len(res[1]["seq"]))
+    
+    exit()
     for temperature, n_seq in [(0.1, 10000), (0.2, 10000), (0.4, 2000), (0.6, 1000), (0.8, 1000), (1.0, 1000)]:
         with open(results_dir / f"abmpnn_{temperature}.jsonl", "w") as out_jsonl:
             sample(
