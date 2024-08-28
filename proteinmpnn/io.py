@@ -6,8 +6,9 @@ from typing import Any, Optional, TextIO
 
 import torch
 
+Structure = dict[str, Any]
 
-def parse_pdb_to_dict(pdb_path: Path, chain_ids: Optional[list[str]] = None) -> dict[str, Any]:
+def parse_pdb(pdb_path: Path, chain_ids: Optional[list[str]] = None) -> Structure:
     pdb_parser = PDBParser()
     structure = pdb_parser.get_structure("-", pdb_path)
     chain_seqs = {}

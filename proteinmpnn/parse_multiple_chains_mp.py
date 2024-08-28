@@ -7,11 +7,11 @@ import json
 import multiprocessing as mp
 import psutil
 
-from proteinmpnn.io import parse_pdb_to_dict
+from proteinmpnn.io import parse_pdb
 
 
 def worker(pdb_path: Path) -> str:
-    return json.dumps(parse_pdb_to_dict(pdb_path))
+    return json.dumps(parse_pdb(pdb_path))
 
 
 def main(args):

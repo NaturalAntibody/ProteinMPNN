@@ -3,7 +3,7 @@ from pathlib import Path
 
 import torch
 
-from proteinmpnn.io import parse_pdb_to_dict
+from proteinmpnn.io import Structure, parse_pdb
 from proteinmpnn.protein_mpnn_utils import tied_featurize as tied_featurize_orig
 
 ALPHABET = "ACDEFGHIKLMNPQRSTVWYX"
@@ -42,9 +42,14 @@ def tied_featurize(*args, **kwargs) -> TiedFeaturizeResult:
 
 def featurize_pdb(pdb_path: Path, designed_chains: list[str], fixed_chains: list[str], device) -> TiedFeaturizeResult:
     all_chains = designed_chains + fixed_chains
-    protein = parse_pdb_to_dict(pdb_path, chain_ids=all_chains)
+    protein = parse_pdb(pdb_path, chain_ids=all_chains)
     chain_id_dict = {protein["name"]: (designed_chains, fixed_chains)}
     return tied_featurize(batch=[protein], device=device, chain_dict=chain_id_dict)
+
+
+def featurize_structure(structure: Structure, designed_chains: list[str], fixed_chains: list[str], device) -> TiedFeaturizeResult:
+    chain_id_dict = {structure["name"]: (designed_chains, fixed_chains)}
+    return tied_featurize(batch=[structure], device=device, chain_dict=chain_id_dict)
 
 
 def encode_sequence(features: TiedFeaturizeResult, seq: str) -> TiedFeaturizeResult:

@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from proteinmpnn.config import RESULTS_DIR, DATA_DIR
 from proteinmpnn.featurize import ALPHABET, get_fixed_positions_dict, tied_featurize
-from proteinmpnn.io import parse_pdb_to_dict
+from proteinmpnn.io import parse_pdb
 from proteinmpnn.models import load_abmpnn
 from proteinmpnn.protein_mpnn_utils import _S_to_seq, ProteinMPNN, _scores
 
@@ -24,7 +24,7 @@ def sample(
     device: torch.device = torch.device("cuda:0"),
 ):
     all_chains = designed_chains + fixed_chains
-    protein = parse_pdb_to_dict(pdb_path, chain_ids=all_chains)
+    protein = parse_pdb(pdb_path, chain_ids=all_chains)
     chain_id_dict = {protein["name"]: (designed_chains, fixed_chains)}
 
     fixed_positions_dict = None
