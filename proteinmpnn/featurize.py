@@ -3,7 +3,7 @@ from pathlib import Path
 
 import torch
 
-from proteinmpnn.io import Structure, parse_pdb
+from proteinmpnn.io import Structure, parse_pdb, select_chains
 from proteinmpnn.protein_mpnn_utils import tied_featurize as tied_featurize_orig
 
 ALPHABET = "ACDEFGHIKLMNPQRSTVWYX"
@@ -47,7 +47,11 @@ def featurize_pdb(pdb_path: Path, designed_chains: list[str], fixed_chains: list
     return tied_featurize(batch=[protein], device=device, chain_dict=chain_id_dict)
 
 
-def featurize_structure(structure: Structure, designed_chains: list[str], fixed_chains: list[str], device) -> TiedFeaturizeResult:
+def featurize_structure(
+    structure: Structure, designed_chains: list[str], fixed_chains: list[str], device
+) -> TiedFeaturizeResult:
+    all_chains = designed_chains + fixed_chains
+    structure = select_chains(structure, all_chains)
     chain_id_dict = {structure["name"]: (designed_chains, fixed_chains)}
     return tied_featurize(batch=[structure], device=device, chain_dict=chain_id_dict)
 
