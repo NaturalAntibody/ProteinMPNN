@@ -1,6 +1,5 @@
-import json
 from pathlib import Path
-from typing import Optional, TextIO
+from typing import Optional
 
 import numpy as np
 import torch
@@ -10,7 +9,7 @@ from proteinmpnn.config import RESULTS_DIR, DATA_DIR
 from proteinmpnn.featurize import ALPHABET, get_fixed_positions_dict, tied_featurize
 from proteinmpnn.io import parse_pdb
 from proteinmpnn.models import load_abmpnn
-from proteinmpnn.protein_mpnn_utils import _S_to_seq, ProteinMPNN, _scores
+from proteinmpnn.protein_mpnn_utils import _S_to_seq, ProteinMPNN
 
 
 def sample(
@@ -38,39 +37,17 @@ def sample(
         fixed_positions_dict,
     )
 
-    randn_1 = torch.randn(features.chain_M.shape, device=device)
-
-    log_probs = model(
-        features.X,
-        features.S,
-        features.mask,
-        features.chain_M * features.chain_M_pos,
-        features.residue_idx,
-        features.chain_encoding_all,
-        randn_1,
-    )
-    mask_for_loss = features.mask * features.chain_M * features.chain_M_pos
-    designed_scores = _scores(features.S, log_probs, mask_for_loss)  # score only the redesigned part
-    global_scores = _scores(features.S, log_probs, features.mask)  # score the whole structure-sequence
-    results = []
-    pdb_res = {
-        "id": "pdb",
-        # "log_probs": log_probs.tolist(),
-        "designed_scores": designed_scores.tolist(),
-        "global_scores": global_scores.tolist(),
-        "seq": protein["seq"],
-    }
-    results.append(pdb_res)
-
     # Generate some sequences
     omit_AAs = "X"
     omit_AAs_np = np.array([AA in omit_AAs for AA in ALPHABET]).astype(np.float32)
     bias_AAs_np = np.zeros(len(ALPHABET))
-    for j in tqdm(range(num_seq_per_target), total=num_seq_per_target):
-        randn_2 = torch.randn(features.chain_M.shape, device=device)
+
+    results = []
+    for _ in tqdm(range(num_seq_per_target), total=num_seq_per_target):
+        noise = torch.randn(features.chain_M.shape, device=device)
         sample_dict = model.sample(
             features.X,
-            randn_2,
+            noise,
             features.S,
             features.chain_M,
             features.chain_encoding_all,
@@ -90,34 +67,9 @@ def sample(
             bias_by_res=features.bias_by_res_all,
         )
         S_sample = sample_dict["S"]
-
-        log_probs = model(
-            features.X,
-            S_sample,
-            features.mask,
-            features.chain_M * features.chain_M_pos,
-            features.residue_idx,
-            features.chain_encoding_all,
-            randn_2,
-            use_input_decoding_order=True,
-            decoding_order=sample_dict["decoding_order"],
-        )
-        designed_scores = _scores(S_sample, log_probs, mask_for_loss)
-        global_scores = _scores(S_sample, log_probs, features.mask)  # score the whole structure-sequence
-
-        seq_recovery_rate = torch.sum((features.S == S_sample) * mask_for_loss, dim=1) / torch.sum(mask_for_loss, dim=1)
-
         seq = _S_to_seq(S_sample[0], features.chain_M[0])
+        results.append(seq)
 
-        sample_res = {
-            "id": j,
-            # "log_probs": log_probs.tolist(),
-            "designed_scores": designed_scores.tolist(),
-            "global_scores": global_scores.tolist(),
-            "seq_recovery": seq_recovery_rate.tolist(),
-            "seq": seq,
-        }
-        results.append(sample_res)
     return results
 
 
