@@ -9,7 +9,7 @@ from proteinmpnn.config import ABMPNN_WEIGHTS_PATH, DEFAULT_PROTEINMPNN_WEIGHTS_
 def load_model(checkpoint_path: Path, device: torch.device = torch.device("cuda:0"), ca_only: bool = False, backbone_noise=0.0) -> ProteinMPNN:
     hidden_dim = 128
     num_layers = 3
-    checkpoint = torch.load(checkpoint_path, map_location=device)
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
     model = ProteinMPNN(ca_only=ca_only,
                         num_letters=21,
                         node_features=hidden_dim,
