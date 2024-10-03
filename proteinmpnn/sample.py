@@ -43,7 +43,7 @@ def sample(
     bias_AAs_np = np.zeros(len(ALPHABET))
 
     results = []
-    for _ in tqdm(range(num_seq_per_target), total=num_seq_per_target):
+    for _ in tqdm(range(num_seq_per_target), total=num_seq_per_target, disable=num_seq_per_target == 1):
         noise = torch.randn(features.chain_M.shape, device=device)
         sample_dict = model.sample(
             features.X,
@@ -79,16 +79,16 @@ if __name__ == "__main__":
     results_dir = "/tmp"
     # results_dir.mkdir(parents=True, exist_ok=True)
     res = sample(
-            model=load_abmpnn(),
-            pdb_path=DATA_DIR / "1dqj.pdb",
-            designed_chains=["A", "B"],
-            fixed_chains=[],
-            temperature=0.1,
-            num_seq_per_target=1,
-            out_jsonl="/tmp/out.json",
-        )
+        model=load_abmpnn(),
+        pdb_path=DATA_DIR / "1dqj.pdb",
+        designed_chains=["A", "B"],
+        fixed_chains=[],
+        temperature=0.1,
+        num_seq_per_target=1,
+        out_jsonl="/tmp/out.json",
+    )
     print(len(res[1]["seq"]))
-    
+
     exit()
     for temperature, n_seq in [(0.1, 10000), (0.2, 10000), (0.4, 2000), (0.6, 1000), (0.8, 1000), (1.0, 1000)]:
         with open(results_dir / f"abmpnn_{temperature}.jsonl", "w") as out_jsonl:
