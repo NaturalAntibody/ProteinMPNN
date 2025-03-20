@@ -27,7 +27,7 @@ def _scores(S, log_probs, mask, positions_to_score):
     return scores
 
 
-def score(model, features: TiedFeaturizeResult, sample_count: int = 1, positions_to_score: list[int] = None):
+def score(model, features: TiedFeaturizeResult, sample_count: int = 1, positions_to_score: list[int] | None = None):
     noise = torch.randn((sample_count, features.chain_M.shape[1]), device=features.X.device)
     X = features.X.expand(sample_count, -1, -1, -1)
     S = features.S.expand(sample_count, -1)

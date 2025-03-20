@@ -9,11 +9,12 @@ from proteinmpnn.config import RESULTS_DIR, DATA_DIR
 from proteinmpnn.featurize import ALPHABET, get_fixed_positions_dict, tied_featurize
 from proteinmpnn.io import parse_pdb
 from proteinmpnn.models import load_abmpnn
-from proteinmpnn.protein_mpnn_utils import _S_to_seq, ProteinMPNN
+from proteinmpnn.protein_mpnn_utils import _S_to_seq
+from torch.nn import Module
 
 
 def sample(
-    model: ProteinMPNN,
+    model: Module,
     pdb_path: Path,
     designed_chains: list[str],
     fixed_chains: list[str],
