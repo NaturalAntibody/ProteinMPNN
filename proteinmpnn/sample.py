@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TextIO
 
 import numpy as np
 import torch
@@ -15,7 +15,7 @@ from torch.nn import Module
 
 def sample(
     model: Module,
-    pdb_path: Path,
+    pdb: Path | TextIO,
     designed_chains: list[str],
     fixed_chains: list[str],
     temperature: float,
@@ -24,7 +24,7 @@ def sample(
     device: torch.device = torch.device("cuda:0"),
 ):
     all_chains = designed_chains + fixed_chains
-    protein = parse_pdb(pdb_path, chain_ids=all_chains)
+    protein = parse_pdb(pdb, chain_ids=all_chains)
     chain_id_dict = {protein["name"]: (designed_chains, fixed_chains)}
 
     fixed_positions_dict = None
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     # results_dir.mkdir(parents=True, exist_ok=True)
     res = sample(
         model=load_abmpnn(),
-        pdb_path=DATA_DIR / "1dqj.pdb",
+        pdb=DATA_DIR / "1dqj.pdb",
         designed_chains=["A", "B"],
         fixed_chains=[],
         temperature=0.1,

@@ -1,5 +1,6 @@
 from collections import namedtuple
 from pathlib import Path
+from typing import TextIO
 
 import torch
 
@@ -40,9 +41,9 @@ def tied_featurize(*args, **kwargs) -> TiedFeaturizeResult:
     return TiedFeaturizeResult(*tied_featurize_orig(*args, **kwargs))
 
 
-def featurize_pdb(pdb_path: Path, designed_chains: list[str], fixed_chains: list[str], device) -> TiedFeaturizeResult:
+def featurize_pdb(pdb: Path | TextIO, designed_chains: list[str], fixed_chains: list[str], device) -> TiedFeaturizeResult:
     all_chains = designed_chains + fixed_chains
-    protein = parse_pdb(pdb_path, chain_ids=all_chains)
+    protein = parse_pdb(pdb, chain_ids=all_chains)
     chain_id_dict = {protein["name"]: (designed_chains, fixed_chains)}
     return tied_featurize(batch=[protein], device=device, chain_dict=chain_id_dict)
 
