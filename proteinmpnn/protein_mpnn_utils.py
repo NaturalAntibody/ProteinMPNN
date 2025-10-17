@@ -1097,7 +1097,7 @@ class ProteinMPNN(nn.Module):
 
         logits = self.W_out(h_V)
         log_probs = F.log_softmax(logits, dim=-1)
-        return log_probs
+        return logits, log_probs
 
 
 

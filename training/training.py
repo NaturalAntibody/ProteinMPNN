@@ -142,7 +142,7 @@ def main(args):
                 
                 if args.mixed_precision:
                     with torch.cuda.amp.autocast():
-                        log_probs = model(X, S, mask, chain_M, residue_idx, chain_encoding_all)
+                        logits, log_probs = model(X, S, mask, chain_M, residue_idx, chain_encoding_all)
                         _, loss_av_smoothed = loss_smoothed(S, log_probs, mask_for_loss)
            
                     scaler.scale(loss_av_smoothed).backward()
@@ -153,7 +153,7 @@ def main(args):
                     scaler.step(optimizer)
                     scaler.update()
                 else:
-                    log_probs = model(X, S, mask, chain_M, residue_idx, chain_encoding_all)
+                    logits, log_probs = model(X, S, mask, chain_M, residue_idx, chain_encoding_all)
                     _, loss_av_smoothed = loss_smoothed(S, log_probs, mask_for_loss)
                     loss_av_smoothed.backward()
 
@@ -176,7 +176,7 @@ def main(args):
                 validation_acc = 0.
                 for _, batch in enumerate(loader_valid):
                     X, S, mask, lengths, chain_M, residue_idx, mask_self, chain_encoding_all = featurize(batch, device)
-                    log_probs = model(X, S, mask, chain_M, residue_idx, chain_encoding_all)
+                    logits, log_probs = model(X, S, mask, chain_M, residue_idx, chain_encoding_all)
                     mask_for_loss = mask*chain_M
                     loss, loss_av, true_false = loss_nll(S, log_probs, mask_for_loss)
                     

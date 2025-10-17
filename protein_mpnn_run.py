@@ -253,7 +253,7 @@ def main(args):
                         S[:,:input_seq_length] = S_input #assumes that S and S_input are alphabetically sorted for masked_chains
                     for j in range(NUM_BATCHES):
                         randn_1 = torch.randn(chain_M.shape, device=X.device)
-                        log_probs = model(X, S, mask, chain_M*chain_M_pos, residue_idx, chain_encoding_all, randn_1)
+                        logits, log_probs = model(X, S, mask, chain_M*chain_M_pos, residue_idx, chain_encoding_all, randn_1)
                         mask_for_loss = mask*chain_M*chain_M_pos
                         scores = _scores(S, log_probs, mask_for_loss)
                         native_score = scores.cpu().data.numpy()
@@ -306,7 +306,7 @@ def main(args):
                 np.savez(unconditional_probs_only_file, log_p=concat_log_p, S=S[0,].cpu().numpy(), mask=mask[0,].cpu().numpy(), design_mask=mask_out)
             else:
                 randn_1 = torch.randn(chain_M.shape, device=X.device)
-                log_probs = model(X, S, mask, chain_M*chain_M_pos, residue_idx, chain_encoding_all, randn_1)
+                logits, log_probs = model(X, S, mask, chain_M*chain_M_pos, residue_idx, chain_encoding_all, randn_1)
                 mask_for_loss = mask*chain_M*chain_M_pos
                 scores = _scores(S, log_probs, mask_for_loss) #score only the redesigned part
                 native_score = scores.cpu().data.numpy()
@@ -330,7 +330,7 @@ def main(args):
                                 sample_dict = model.tied_sample(X, randn_2, S, chain_M, chain_encoding_all, residue_idx, mask=mask, temperature=temp, omit_AAs_np=omit_AAs_np, bias_AAs_np=bias_AAs_np, chain_M_pos=chain_M_pos, omit_AA_mask=omit_AA_mask, pssm_coef=pssm_coef, pssm_bias=pssm_bias, pssm_multi=args.pssm_multi, pssm_log_odds_flag=bool(args.pssm_log_odds_flag), pssm_log_odds_mask=pssm_log_odds_mask, pssm_bias_flag=bool(args.pssm_bias_flag), tied_pos=tied_pos_list_of_lists_list[0], tied_beta=tied_beta, bias_by_res=bias_by_res_all)
                             # Compute scores
                                 S_sample = sample_dict["S"]
-                            log_probs = model(X, S_sample, mask, chain_M*chain_M_pos, residue_idx, chain_encoding_all, randn_2, use_input_decoding_order=True, decoding_order=sample_dict["decoding_order"])
+                            logits, log_probs = model(X, S_sample, mask, chain_M*chain_M_pos, residue_idx, chain_encoding_all, randn_2, use_input_decoding_order=True, decoding_order=sample_dict["decoding_order"])
                             mask_for_loss = mask*chain_M*chain_M_pos
                             scores = _scores(S_sample, log_probs, mask_for_loss)
                             scores = scores.cpu().data.numpy()
