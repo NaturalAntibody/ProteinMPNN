@@ -48,6 +48,7 @@ def score(model, features: TiedFeaturizeResult, sample_count: int = 1, positions
     mask_for_loss = mask * chain_M
     designed_scores = _scores(S, log_probs, mask_for_loss, positions_to_score)
     global_scores = _scores(S, log_probs, mask, positions_to_score)
+    logits = logits[mask_for_loss.bool()]
     return ScoringResult(designed_scores, global_scores, logits)
 
 
