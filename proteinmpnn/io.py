@@ -65,7 +65,7 @@ def select_chains(protein: dict, chains: list[str]) -> dict:
     return res
 
 
-def write_scores(id: str, designed_score: torch.tensor, global_score: torch.tensor, out_jsonl: TextIO):
+def write_scores(id: str, designed_score: torch.Tensor, global_score: torch.Tensor, out_jsonl: TextIO):
     out_json = {
         "id": "pdb",
         "scores": designed_score.tolist(),
