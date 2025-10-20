@@ -37,8 +37,30 @@ TiedFeaturizeResult = namedtuple(
 )
 
 
-def tied_featurize(*args, **kwargs) -> TiedFeaturizeResult:
-    return TiedFeaturizeResult(*tied_featurize_orig(*args, **kwargs))
+def tied_featurize(
+    batch,
+    device,
+    chain_dict,
+    fixed_position_dict=None,
+    omit_AA_dict=None,
+    tied_positions_dict=None,
+    pssm_dict=None,
+    bias_by_res_dict=None,
+    ca_only=False,
+) -> TiedFeaturizeResult:
+    return TiedFeaturizeResult(
+        *tied_featurize_orig(
+            batch,
+            device,
+            chain_dict,
+            fixed_position_dict=fixed_position_dict,
+            omit_AA_dict=omit_AA_dict,
+            tied_positions_dict=tied_positions_dict,
+            pssm_dict=pssm_dict,
+            bias_by_res_dict=bias_by_res_dict,
+            ca_only=ca_only,
+        )
+    )
 
 
 def featurize_pdb(
@@ -74,7 +96,7 @@ def featurize_structure(
         batch=[structure],
         device=device,
         chain_dict=chain_id_dict,
-        fixed_positions_dict=fixed_positions_dict,
+        fixed_position_dict=fixed_positions_dict,
     )
 
 
